@@ -208,14 +208,14 @@ app.get('/api/food-places', async (req, res) => {
   const longitude = Number(lng);
 
   // --- 2. Check API key presence ------------------------------------------
-  const apiKey = process.env.SERPAPI_KEY;
+  const apiKey = process.env.SERPAPI_KEY || process.env.SERPAPI_API_KEY;
   if (!apiKey || apiKey.trim() === '' || apiKey === 'your_serpapi_key_here') {
     // Return a clear configuration error — do NOT attempt the request.
     return res.status(500).json({
       success: false,
       error:
         'Server configuration error: SERPAPI_KEY is not set. ' +
-        'Create server/.env from server/.env.example and add your key.',
+        'Add SERPAPI_KEY to your environment variables.',
     });
   }
 
@@ -385,10 +385,11 @@ app.use((err, _req, res, _next) => {
 // Bind to 0.0.0.0 so the server is reachable from a physical Android device
 // on the same local network (not just from localhost).
 app.listen(PORT, '0.0.0.0', () => {
+  const activeKey = process.env.SERPAPI_KEY || process.env.SERPAPI_API_KEY;
   const keyConfigured =
-    process.env.SERPAPI_KEY &&
-    process.env.SERPAPI_KEY !== 'your_serpapi_key_here' &&
-    process.env.SERPAPI_KEY.trim() !== '';
+    activeKey &&
+    activeKey !== 'your_serpapi_key_here' &&
+    activeKey.trim() !== '';
 
   console.log(`FoodRadar backend running on http://0.0.0.0:${PORT}`);
   console.log(`  Health check : http://localhost:${PORT}/health`);

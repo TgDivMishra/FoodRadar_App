@@ -11,6 +11,8 @@
       "icon": "./assets/images/FoodRadar_Logo.png"
     },
     "android": {
+      "package": "com.divyansh.foodradar",
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/FoodRadar_Logo.png"
