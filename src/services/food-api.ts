@@ -106,7 +106,8 @@ export async function fetchNearbyFoodPlaces(
   const url = `${baseUrl}/api/food-places?lat=${encodeURIComponent(userLat)}&lng=${encodeURIComponent(userLng)}`;
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+  // 45s timeout to handle Render cold-start wake-up (free tier sleeps after 15min inactivity)
+  const timeoutId = setTimeout(() => controller.abort(), 45000);
 
   try {
     const response = await fetch(url, {

@@ -35,6 +35,9 @@ export default function FoodRadarScreen() {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSearchingFood, setIsSearchingFood] = useState<boolean>(false);
+  // Tracks how many seconds we've been searching, to show a friendly wake-up message
+  const [searchSeconds, setSearchSeconds] = useState<number>(0);
+  const searchTimerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Real device location hook
   const {
@@ -61,13 +64,25 @@ export default function FoodRadarScreen() {
 
     if (result.success && result.coords) {
       setIsSearchingFood(true);
+      setSearchSeconds(0);
+      // Start a 1-second tick so getRadarStatusMessage can show warm-up hints
+      if (searchTimerRef.current) clearInterval(searchTimerRef.current);
+      searchTimerRef.current = setInterval(() => setSearchSeconds(s => s + 1), 1000);
+
       // Coordinates acquired successfully -> Fetch REAL food spots from SerpApi backend
+      const stopTimer = () => {
+        if (searchTimerRef.current) {
+          clearInterval(searchTimerRef.current);
+          searchTimerRef.current = null;
+        }
+      };
       try {
         const foodResult = await fetchNearbyFoodPlaces(
           result.coords.latitude,
           result.coords.longitude
         );
 
+        stopTimer();
         setIsSearchingFood(false);
 
         if (foodResult.success) {
@@ -84,6 +99,7 @@ export default function FoodRadarScreen() {
           setScanStatus('error');
         }
       } catch (err: any) {
+        stopTimer();
         setIsSearchingFood(false);
         setPlaces([]);
         setApiError(err?.message || 'Unexpected network error while contacting food server');
@@ -152,9 +168,21 @@ export default function FoodRadarScreen() {
    */
   const getRadarStatusMessage = () => {
     if (isSearchingFood) {
+      if (searchSeconds >= 10) {
+        return {
+          title: 'Almost there...',
+          subtitle: 'Server is warming up — results loading shortly',
+        };
+      }
+      if (searchSeconds >= 5) {
+        return {
+          title: 'Waking up server...',
+          subtitle: 'First load takes ~30s — please wait ✨',
+        };
+      }
       return {
         title: 'Searching food spots...',
-        subtitle: 'Fetching live restaurants from SerpApi radar',
+        subtitle: 'Fetching live restaurants near you',
       };
     }
     if (loadingStep === 'requesting_permission') {
