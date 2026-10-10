@@ -2,27 +2,20 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { FoodPlace } from '@/types/food';
 
+const RENDER_BACKEND_URL = 'https://foodradar-app-8tbr.onrender.com';
+
 /**
  * Returns the appropriate backend base URL:
- * - On Web: http://localhost:3000
- * - In Expo Go on mobile or simulator: Uses Metro bundler's host IP (e.g. 192.168.1.7:3000)
- * - Fallback: http://192.168.1.7:3000
+ * - Live Cloud Backend on Render: https://foodradar-app-8tbr.onrender.com
+ * - Can be overridden locally via process.env.EXPO_PUBLIC_API_URL if needed
  */
 export function getBackendBaseUrl(): string {
-  if (Platform.OS === 'web') {
-    return 'http://localhost:3000';
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL.replace(/\/+$/, '');
   }
 
-  const hostUri = Constants.expoConfig?.hostUri;
-  if (hostUri) {
-    const ip = hostUri.split(':')[0];
-    if (ip && ip.trim()) {
-      return `http://${ip}:3000`;
-    }
-  }
-
-  // Fallback to detected Wi-Fi IP
-  return 'http://192.168.1.7:3000';
+  // Live Cloud backend on Render (reachable on any phone, Wi-Fi, or Mobile Data worldwide)
+  return RENDER_BACKEND_URL;
 }
 
 /**
